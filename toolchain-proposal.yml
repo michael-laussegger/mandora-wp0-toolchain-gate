@@ -1,0 +1,15 @@
+status: proposed
+purpose: Reproducible LinkML validation and JSON Schema generation
+python:
+  version: "3.12"
+  status: proposed_not_tested
+linkml:
+  version: null
+  status: must_be_selected_and_pinned_after_ci_validation
+json_schema:
+  draft: "2020-12"
+  status: target_to_verify_from_generated_output
+lockfile:
+  required: true
+  hash_checking: required
+  status: not_created_until_candidate_is_verified

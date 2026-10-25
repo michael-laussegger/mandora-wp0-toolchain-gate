@@ -1,0 +1,43 @@
+name: model-validation
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate-model:
+    # WP-0 remains blocked until the pinned toolchain and generator invocation are approved.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Capture environment
+        if: always()
+        run: python scripts/capture_environment.py
+      - name: Install locked toolchain
+        run: |
+          test -f requirements-lock.txt || (echo 'requirements-lock.txt missing: WP-0 is not release-ready' && exit 1)
+          python -m pip install --require-hashes -r requirements-lock.txt
+      - name: LinkML source validation
+        run: linkml-validate -s model/mandora-core-prototype.yaml
+      - name: Local source lint
+        run: python scripts/validate_source_lint.py model/mandora-core-prototype.yaml
+      - name: D1-D4 reference tests
+        run: python tests/test_d1_d4_reference.py
+      - name: Generated output reproducibility
+        run: |
+          test -x scripts/generate_schemas.sh || (echo 'Generator script not verified' && exit 1)
+          scripts/generate_schemas.sh
+          git diff --exit-code -- generated/json-schema
+      - name: Upload WP-0 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp0-toolchain-evidence
+          path: |
+            reports/
+            generated/json-schema/
+          if-no-files-found: warn

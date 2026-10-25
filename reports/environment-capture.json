@@ -1,0 +1,30 @@
+{
+  "captured_at_utc": "2026-10-25T08:38:55.732758+00:00",
+  "python_version": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "python_executable": "/opt/pyvenv/bin/python",
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "packages": {
+    "linkml": null,
+    "jsonschema": "4.26.0",
+    "PyYAML": "6.0.3",
+    "pytest": "9.0.2"
+  },
+  "commands": {
+    "linkml": {
+      "available": false,
+      "path": null,
+      "version_output": null
+    },
+    "linkml-validate": {
+      "available": false,
+      "path": null,
+      "version_output": null
+    },
+    "gen-json-schema": {
+      "available": false,
+      "path": null,
+      "version_output": null
+    }
+  },
+  "interpretation": "Environment capture only; not a WP-0 pass result."
+}

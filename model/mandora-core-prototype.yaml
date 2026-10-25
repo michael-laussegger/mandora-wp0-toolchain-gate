@@ -1,0 +1,204 @@
+# Mandora LinkML prototype v0.4 — D1–D4 modeling decisions incorporated; full model remains unapproved
+id: https://schemas.mandora.example/model/core-prototype
+name: mandora_core_prototype
+title: Mandora Core Model Prototype
+description: >-
+  Illustrative single-source model for evaluating LinkML. This is not an approved
+  canonical model and does not replace existing Mandora specifications.
+license: MIT
+version: 0.4.0
+prefixes:
+  linkml: https://w3id.org/linkml/
+  schema: https://schemas.mandora.example/
+  xsd: http://www.w3.org/2001/XMLSchema#
+default_prefix: schema
+default_range: string
+imports:
+  - linkml:types
+
+types:
+  UUID:
+    typeof: string
+    pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    description: UUID textual representation. UUID version policy remains undecided.
+  DateTime:
+    typeof: datetime
+
+slots:
+  id:
+    identifier: true
+    range: UUID
+    required: true
+    description: Stable identifier for this record. For Tenant, this is the canonical root tenant identity.
+  tenant_id:
+    range: UUID
+    required: true
+    description: Tenant security boundary to which this record belongs.
+  name:
+    range: string
+    required: true
+  status:
+    range: string
+    required: true
+  created_at:
+    range: DateTime
+    required: true
+  recorded_at:
+    range: DateTime
+    required: true
+  valid_from:
+    range: DateTime
+    description: Business-effective inclusive start time for a half-open interval [valid_from, valid_to), where applicable.
+  valid_to:
+    range: DateTime
+    description: Business-effective exclusive end time for [valid_from, valid_to); null means no specified end. When set, must be greater than valid_from.
+  party_type:
+    range: PartyType
+    required: true
+  pii_profile_ref:
+    range: UUID
+    description: Reference into a separately protected PII store; no PII fields here.
+  merged_into_party_id:
+    range: UUID
+    description: Survivor Party ID when this Party has status merged.
+  legal_entity_id:
+    range: UUID
+    required: true
+  party_id:
+    range: UUID
+    required: true
+  role_type:
+    range: PartyRoleType
+    required: true
+  event_type:
+    range: string
+    required: true
+  subject_ref:
+    range: string
+    required: true
+  actor_ref:
+    range: string
+    required: true
+  correlation_id:
+    range: UUID
+    required: true
+  causation_id:
+    range: UUID
+  occurred_at:
+    range: DateTime
+    description: Time the event or action occurred in the business world, when known; omit if unknown.
+  context_ref:
+    range: string
+    description: Optional role context; null denotes the shared default context for overlap checks.
+  schema_version:
+    range: string
+    required: true
+  payload:
+    range: string
+    description: Placeholder only. A production event contract must define typed payloads and serialization.
+
+enums:
+  PartyType:
+    permissible_values:
+      person:
+      organization:
+  PartyStatus:
+    permissible_values:
+      active:
+      inactive:
+      merged:
+  PartyRoleType:
+    permissible_values:
+      prospect:
+      customer:
+      supplier:
+      distributor:
+      business_partner:
+      other:
+  PartyRoleStatus:
+    permissible_values:
+      active:
+      inactive:
+  TenantStatus:
+    permissible_values:
+      active:
+      suspended:
+      closed:
+  LegalEntityStatus:
+    permissible_values:
+      active:
+      inactive:
+
+classes:
+  Tenant:
+    description: Top-level customer/security boundary in the Mandora platform.
+    slots:
+      - id
+      - name
+      - status
+      - created_at
+    slot_usage:
+      status:
+        range: TenantStatus
+  LegalEntity:
+    description: Legally registered or otherwise legally accountable entity within a Tenant.
+    slots:
+      - id
+      - tenant_id
+      - name
+      - status
+      - created_at
+    slot_usage:
+      status:
+        range: LegalEntityStatus
+  Party:
+    description: >-
+      A person or organization represented in the master-data domain. A merged Party must
+      reference a survivor in merged_into_party_id; a non-merged Party must not. Cross-record
+      checks enforce target existence, same tenant, no self-merge, and no redirect cycles.
+    slots:
+      - id
+      - tenant_id
+      - party_type
+      - status
+      - pii_profile_ref
+      - merged_into_party_id
+      - created_at
+    slot_usage:
+      status:
+        range: PartyStatus
+  PartyRole:
+    description: >-
+      A contextual business role held by a Party; it grants no access permissions.
+      valid_from is inclusive and valid_to is exclusive. Overlap for the same tenant, party,
+      role_type, and context_ref is prohibited by default; different roles or contexts may overlap.
+    slots:
+      - id
+      - tenant_id
+      - party_id
+      - role_type
+      - status
+      - valid_from
+      - valid_to
+      - context_ref
+      - created_at
+    slot_usage:
+      status:
+        range: PartyRoleStatus
+      valid_from:
+        required: true
+  Event:
+    description: Minimal event envelope candidate for causal history; integrity and delivery are not modeled fully here.
+    slots:
+      - id
+      - tenant_id
+      - event_type
+      - subject_ref
+      - actor_ref
+      - correlation_id
+      - causation_id
+      - schema_version
+      - occurred_at
+      - recorded_at
+      - payload
+
